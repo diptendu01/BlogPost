@@ -56,20 +56,44 @@ Route::post('/remove-follow/{user:username}', [FollowController::class, 'removeF
 
 //Chat Route
 Route::post('/send-chat-message', function (Request $request) {
-  $formFields = $request->validate([
-      'textvalue' => 'required'
-  ]);
-  $cleanedText = trim(strip_tags($formFields['textvalue']));
+    if (!Auth::check()) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
 
-  if (!$cleanedText) {
-      return response()->noContent();
-  }
+    $formFields = $request->validate([
+        'textvalue' => 'required'
+    ]);
 
-  broadcast(new ChatMessage([
-      'username' => Auth::user()->username,
-      'textvalue' => $cleanedText,
-      'avatar' => Auth::user()->avatar
-  ]))->toOthers();
+    $cleanedText = trim(strip_tags($formFields['textvalue']));
 
-  return response()->noContent();
+    if (!$cleanedText) {
+        return response()->noContent();
+    }
+
+    broadcast(new ChatMessage([
+        'username' => Auth::user()->username,
+        'textvalue' => $cleanedText,
+        'avatar' => Auth::user()->avatar
+    ]))->toOthers();
+
+    return response()->noContent();
 })->middleware('mustBeLoggedIn');
+
+// Route::post('/send-chat-message', function (Request $request) {
+//   $formFields = $request->validate([
+//       'textvalue' => 'required'
+//   ]);
+//   $cleanedText = trim(strip_tags($formFields['textvalue']));
+
+//   if (!$cleanedText) {
+//       return response()->noContent();
+//   }
+
+//   broadcast(new ChatMessage([
+//       'username' => Auth::user()->username,
+//       'textvalue' => $cleanedText,
+//       'avatar' => Auth::user()->avatar
+//   ]))->toOthers();
+
+//   return response()->noContent();
+// })->middleware('mustBeLoggedIn');
